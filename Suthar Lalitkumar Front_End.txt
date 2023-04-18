@@ -1,0 +1,130 @@
+Based on the code below answer the following queries:
+
+Q.1 Explain what the simple List component does.
+Answer:- The simple List component is a React component that takes an array of items as input and renders them as a list with each item as a list item.
+ The list items are rendered as clickable elements, and when clicked, the background color of the clicked item changes to green to indicate that it has been selected. 
+ The component uses React's state and effect hooks to manage the selected item index and to update it when the list of items changes.
+
+ The List component itself is a higher-level component that renders multiple ListItem components based on the input items array. 
+ The ListItem component takes props such as the item text, index, and isSelected state to render individual list items.
+ In order to keep React list components tidy, We can extract them to standalone component that only care about their concerns. 
+ For instance, the List component (index, isSelected, onClickHandler) makes sure to map over the array to render a list of ListItem components for each item as child component. 
+ The List components offer an API to the outside. This way the Application components can pass the array as list props to the List components.
+ One little trick for conditional rendering. If you don't know whether the incoming list is null or undefined, default to an empty list itself.
+ The List and List-Item components are used so often in React applications, that they can be taken as list template or boilerplate,
+ because often you just copy and paste the same implementation for a simple list over to our code.
+ So keeping this structure for a list component(Index,  in mind, isSelected, onClickHandler) do not harm.
+
+Q.2 What problems / warnings are there with code?
+Answer:- problems in codes.
+[plugin:vite:import-analysis] Failed to resolve import "prop-types" from "src/App.jsx". Does the file exist?
+/home/damner/code/src/App.jsx:2:0
+15 |  var _jsxFileName = "/home/damner/code/src/App.jsx", _s = $RefreshSig$();
+16 |  import React, { useState, useEffect, memo } from "react";
+17 |  import PropTypes from "prop-types";
+   |                         ^
+18 |  import { jsxDEV as _jsxDEV } from "react/jsx-dev-runtime";
+19 |  const WrappedSingleListItem = ({
+    at formatError (file:///home/damner/code/node_modules/vite/dist/node/chunks/dep-561c5231.js:35003:46)
+    at TransformContext.error (file:///home/damner/code/node_modules/vite/dist/node/chunks/dep-561c5231.js:34999:19)
+    at normalizeUrl (file:///home/damner/code/node_modules/vite/dist/node/chunks/dep-561c5231.js:40109:33)
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+    at async TransformContext.transform (file:///home/damner/code/node_modules/vite/dist/node/chunks/dep-561c5231.js:40243:47)
+    at async Object.transform (file:///home/damner/code/node_modules/vite/dist/node/chunks/dep-561c5231.js:35252:30)
+    at async loadAndTransform (file:///home/damner/code/node_modules/vite/dist/node/chunks/dep-561c5231.js:39740
+* In the WrappedListComponent component, the propTypes validation for the items prop is incorrect.
+ It should be defined as an array of objects with a text property, like this:
+items: PropTypes.arrayOf(PropTypes.shape({
+  text: PropTypes.string.isRequired,
+}))
+* In the SingleListItem component, there is no need to wrap it with the memo HOC since it does not have any expensive computations, and its props are already memoized by its parent component.
+
+Overall, these issues can cause unwanted behavior and affect the performance and reliability of the component.
+
+
+Q.3 Please fix, optimize, and/or modify the component as much as you think is necessary.
+
+import React, { useState, useEffect, memo } from 'react';
+import PropTypes from 'prop-types';
+
+// Single List Item
+const ListItem = memo(({ index, isSelected, onClickHandler, text }) => {
+  const handleClick = (event) => {
+    onClickHandler(index);
+  };
+
+  return (
+    <li
+      style={{ backgroundColor: isSelected ? 'green' : 'red' }}
+      onClick={handleClick}
+    >
+      {text}
+    </li>
+  );
+});
+
+ListItem.propTypes = {
+  index: PropTypes.number.isRequired,
+  isSelected: PropTypes.bool.isRequired,
+  onClickHandler: PropTypes.func.isRequired,
+  text: PropTypes.string.isRequired,
+};
+
+// List Component
+const List = memo(({ items }) => {
+  const [selectedIndex, setSelectedIndex] = useState(null);
+
+  useEffect(() => {
+    setSelectedIndex(null);
+  }, [items]);
+
+  const handleItemClick = (index) => {
+    setSelectedIndex(index);
+  };
+
+  return (
+    <ul style={{ textAlign: 'left' }}>
+      {items &&
+        items.map((item, index) => (
+          <ListItem
+            key={index}
+            index={index}
+            isSelected={selectedIndex === index}
+            onClickHandler={handleItemClick}
+            text={item.text}
+          />
+        ))}
+    </ul>
+  );
+});
+
+List.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      text: PropTypes.string.isRequired,
+    })
+  ),
+};
+
+List.defaultProps = {
+  items: null,
+};
+
+export default List;
+ 
+
+* There are following some changes in code after the fix are follow,
+
+The isSelected prop is implemented correctly.
+
+The SingleListItem component was renamed to ListItem.
+
+The handleClick function is properly defined.
+
+The propTypes definition for the items prop is fixed.
+
+A key prop is added to the list items.
+
+The setSelectedIndex function is fixed.
+
+The handleItemClick function is fixed.
